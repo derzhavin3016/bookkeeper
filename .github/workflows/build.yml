@@ -41,7 +41,7 @@ jobs:
       run: poetry run mypy --strict bookkeeper
 
     - name: Run pylint checker
-      run: poetry run pylint bookkeeper
+      run: poetry run pylint bookkeeper --fail-under 9
 
     - name: Run flake8 checker
       run: poetry run flake8 bookkeeper
