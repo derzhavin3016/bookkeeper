@@ -15,10 +15,11 @@ class Model(Protocol):  # pylint: disable=too-few-public-methods
     """
     Модель должна содержать атрибут pk
     """
+
     pk: int
 
 
-T = TypeVar('T', bound=Model)
+T = TypeVar("T", bound=Model)
 
 
 class AbstractRepository(ABC, Generic[T]):
@@ -41,7 +42,7 @@ class AbstractRepository(ABC, Generic[T]):
 
     @abstractmethod
     def get(self, pk: int) -> T | None:
-        """ Получить объект по id """
+        """Получить объект по id"""
 
     @abstractmethod
     def get_all(self, where: dict[str, Any] | None = None) -> list[T]:
@@ -53,8 +54,8 @@ class AbstractRepository(ABC, Generic[T]):
 
     @abstractmethod
     def update(self, obj: T) -> None:
-        """ Обновить данные об объекте. Объект должен содержать поле pk. """
+        """Обновить данные об объекте. Объект должен содержать поле pk."""
 
     @abstractmethod
     def delete(self, pk: int) -> None:
-        """ Удалить запись """
+        """Удалить запись"""
