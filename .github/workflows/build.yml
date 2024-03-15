@@ -43,5 +43,5 @@ jobs:
     - name: Run pylint checker
       run: poetry run pylint bookkeeper
 
-    - name: Run pylint checker
+    - name: Run flake8 checker
       run: poetry run flake8 bookkeeper
