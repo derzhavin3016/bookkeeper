@@ -13,10 +13,10 @@ from typing import Generic, TypeVar, Protocol, Any
 
 class Model(Protocol):  # pylint: disable=too-few-public-methods
     """
-    Модель должна содержать атрибут pk
+    Модель должна содержать атрибут primary_key
     """
 
-    pk: int
+    primary_key: int
 
 
 T = TypeVar("T", bound=Model)
@@ -41,7 +41,7 @@ class AbstractRepository(ABC, Generic[T]):
         """
 
     @abstractmethod
-    def get(self, pk: int) -> T | None:
+    def get(self, primary_key: int) -> T | None:
         """Получить объект по id"""
 
     @abstractmethod
@@ -57,5 +57,5 @@ class AbstractRepository(ABC, Generic[T]):
         """Обновить данные об объекте. Объект должен содержать поле pk."""
 
     @abstractmethod
-    def delete(self, pk: int) -> None:
+    def delete(self, primary_key: int) -> None:
         """Удалить запись"""

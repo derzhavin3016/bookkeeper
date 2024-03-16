@@ -18,7 +18,7 @@ def test_create_with_full_args_list():
         expense_date=datetime.now(),
         added_date=datetime.now(),
         comment="test",
-        pk=1,
+        primary_key=1,
     )
     assert e.amount == 100
     assert e.category == 1
@@ -33,4 +33,4 @@ def test_create_brief():
 def test_can_add_to_repo(repo):
     e = Expense(100, 1)
     pk = repo.add(e)
-    assert e.pk == pk
+    assert e.primary_key == pk

@@ -13,7 +13,7 @@ def test_can_create_subclass():
         def add(self, obj):
             pass
 
-        def get(self, pk):
+        def get(self, primary_key):
             pass
 
         def get_all(self, where=None):
@@ -22,8 +22,14 @@ def test_can_create_subclass():
         def update(self, obj):
             pass
 
-        def delete(self, pk):
+        def delete(self, primary_key):
             pass
 
     t = Test()
     assert isinstance(t, AbstractRepository)
+
+    t.add(None)
+    t.get(None)
+    t.update(None)
+    t.get_all(None)
+    t.delete(None)

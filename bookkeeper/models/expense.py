@@ -23,4 +23,4 @@ class Expense:
     expense_date: datetime = field(default_factory=datetime.now)
     added_date: datetime = field(default_factory=datetime.now)
     comment: str = ""
-    pk: int = 0
+    primary_key: int = 0

@@ -6,7 +6,7 @@ import pytest
 @pytest.fixture
 def custom_class():
     class Custom:
-        pk = 0
+        primary_key = 0
 
     return Custom
 
@@ -18,20 +18,20 @@ def repo():
 
 def test_crud(repo, custom_class):
     obj = custom_class()
-    pk = repo.add(obj)
-    assert obj.pk == pk
-    assert repo.get(pk) == obj
+    primary_key = repo.add(obj)
+    assert obj.primary_key == primary_key
+    assert repo.get(primary_key) == obj
     obj2 = custom_class()
-    obj2.pk = pk
+    obj2.primary_key = primary_key
     repo.update(obj2)
-    assert repo.get(pk) == obj2
-    repo.delete(pk)
-    assert repo.get(pk) is None
+    assert repo.get(primary_key) == obj2
+    repo.delete(primary_key)
+    assert repo.get(primary_key) is None
 
 
 def test_cannot_add_with_pk(repo, custom_class):
     obj = custom_class()
-    obj.pk = 1
+    obj.primary_key = 1
     with pytest.raises(ValueError):
         repo.add(obj)
 

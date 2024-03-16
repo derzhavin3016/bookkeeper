@@ -32,7 +32,7 @@ jobs:
       run: poetry run pytest
 
     - name: Run test coverage
-      run: poetry run pytest --cov
+      run: poetry run pytest --cov bookkeeper
 
     - name: Check code formatting
       run: poetry run black . --check
@@ -41,7 +41,7 @@ jobs:
       run: poetry run mypy --strict bookkeeper
 
     - name: Run pylint checker
-      run: poetry run pylint bookkeeper --fail-under 9
+      run: poetry run pylint bookkeeper
 
     - name: Run flake8 checker
       run: poetry run flake8 bookkeeper

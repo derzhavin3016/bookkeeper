@@ -1,6 +1,7 @@
 """
 Тесты для категорий расходов
 """
+
 from inspect import isgenerator
 
 import pytest
@@ -17,13 +18,13 @@ def repo():
 def test_create_object():
     c = Category("name")
     assert c.name == "name"
-    assert c.pk == 0
+    assert c.primary_key == 0
     assert c.parent is None
 
-    c = Category(name="name", parent=1, pk=2)
+    c = Category(name="name", parent=1, primary_key=2)
     assert c.name == "name"
     assert c.parent == 1
-    assert c.pk == 2
+    assert c.primary_key == 2
 
 
 def test_reassign():
@@ -32,17 +33,17 @@ def test_reassign():
     """
     c = Category("name")
     c.name = "test"
-    c.pk = 1
+    c.primary_key = 1
     assert c.name == "test"
-    assert c.pk == 1
+    assert c.primary_key == 1
 
 
 def test_eq():
     """
     class should implement __eq__ method
     """
-    c1 = Category(name="name", parent=1, pk=2)
-    c2 = Category(name="name", parent=1, pk=2)
+    c1 = Category(name="name", parent=1, primary_key=2)
+    c2 = Category(name="name", parent=1, primary_key=2)
     assert c1 == c2
 
 
@@ -97,9 +98,9 @@ def test_create_from_tree(repo):
     parent = next(c for c in cats if c.name == "parent")
     assert parent.parent is None
     c1 = next(c for c in cats if c.name == "1")
-    assert c1.parent == parent.pk
+    assert c1.parent == parent.primary_key
     c2 = next(c for c in cats if c.name == "2")
-    assert c2.parent == c1.pk
+    assert c2.parent == c1.primary_key
 
 
 def test_create_from_tree_error(repo):
