@@ -1,21 +1,24 @@
+import pytest
+from dataclasses import dataclass
+
 from bookkeeper.repository.sqlite_repository import SqliteRepository
 
-import pytest
+
+@dataclass
+class Custom:
+    primary_key: int = 0
+    data: int = 0
+    data_str: str = ""
 
 
 @pytest.fixture
 def custom_class():
-    class Custom:
-        primary_key: int = 0
-        data: int = 0
-        data_str: str = ""
-
     return Custom
 
 
 @pytest.fixture
-def db_name():
-    return "test_db.db"
+def db_name(tmp_path):
+    return tmp_path / "test_db.db"
 
 
 @pytest.fixture
