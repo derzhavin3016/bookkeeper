@@ -19,6 +19,7 @@ class Model(Protocol):  # pylint: disable=too-few-public-methods
     primary_key: int
 
 
+PK_FIELD_NAME = "primary_key"
 T = TypeVar("T", bound=Model)
 
 
