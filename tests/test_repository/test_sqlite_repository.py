@@ -72,11 +72,12 @@ def test_get_all(repo, custom_class):
 
 def test_get_all_with_condition(repo, custom_class):
     objects = []
-    for i in range(5):
+    for i in range(1, 5):
         o = custom_class()
-        o.data = i
+        o.data_float = 1.2 * i
         o.data_str = "test"
         repo.add(o)
         objects.append(o)
-    assert repo.get_all({"data": "0"}) == [objects[0]]
+
+    assert repo.get_all({"data_float": 1.2}) == [objects[0]]
     assert repo.get_all({"data_str": "test"}) == objects

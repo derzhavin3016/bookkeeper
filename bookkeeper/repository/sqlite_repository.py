@@ -99,10 +99,13 @@ class SqliteRepository(AbstractRepository[T]):
         obj = self._cls()
         setattr(obj, PK_FIELD_NAME, primary_key)
 
-        for idx, col_desc in enumerate(names):
+        for col_desc, val in zip(names, vals, strict=True):
             if col_desc[0] not in self._fields:
                 raise ValueError(f"Unexpected field name: {col_desc[0]}")
-            setattr(obj, col_desc[0], vals[idx])
+            exp_type = self._fields.get(col_desc[0])
+            if not isinstance(val, exp_type):
+                raise TypeError(f"Incompatible types: got {val}, expected {exp_type}")
+            setattr(obj, col_desc[0], val)
 
         return obj
 
