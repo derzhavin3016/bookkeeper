@@ -68,7 +68,9 @@ class SqliteRepository(AbstractRepository[T]):
 
     def add(self, obj: T) -> int:
         if (prim_key := getattr(obj, PK_FIELD_NAME, None)) is None:
-            raise ValueError(f"Trying to add object without `{PK_FIELD_NAME}` attribute")
+            raise ValueError(
+                f"Trying to add object without `{PK_FIELD_NAME}` attribute"
+            )
         if prim_key != 0:
             raise ValueError(
                 f"Trying to add object with filled `{PK_FIELD_NAME}` attribute"
