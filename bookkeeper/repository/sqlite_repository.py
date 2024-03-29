@@ -2,7 +2,7 @@
 SQlite3 repository implementation
 """
 
-from typing import Any
+from typing import Any, cast
 from inspect import get_annotations
 from pathlib import Path
 import sqlite3
@@ -34,7 +34,7 @@ class SqliteRepository(AbstractRepository[T]):
         self._init_database()
 
     @staticmethod
-    def _set_pragmas(cursor: sqlite3.Cursor):
+    def _set_pragmas(cursor: sqlite3.Cursor) -> None:
         cursor.execute("PRAGMA foreign_keys = ON")
 
     _type_mappings: dict[type, str] = {
@@ -51,7 +51,7 @@ class SqliteRepository(AbstractRepository[T]):
             raise ValueError(f"Type {tpy} is not supported yet")
         return res
 
-    def _init_database(self):
+    def _init_database(self) -> None:
         with closing(sqlite3.connect(self._db_name)) as con, con as con, closing(
             con.cursor()
         ) as cursor:
@@ -104,12 +104,12 @@ class SqliteRepository(AbstractRepository[T]):
         for col_desc, val in zip(names, vals, strict=True):
             if col_desc[0] not in self._fields:
                 raise ValueError(f"Unexpected field name: {col_desc[0]}")
-            exp_type = self._fields.get(col_desc[0])
+            exp_type = self._fields[col_desc[0]]
             if not isinstance(val, exp_type):
                 raise TypeError(f"Incompatible types: got {val}, expected {exp_type}")
             setattr(obj, col_desc[0], val)
 
-        return obj
+        return cast(T, obj)
 
     def get(self, primary_key: int) -> T | None:
         names = ", ".join(self._fields)
@@ -125,9 +125,9 @@ class SqliteRepository(AbstractRepository[T]):
 
             if data is None:
                 return None
-            names = cursor.description
+            names_desc = cursor.description
 
-        return self._make_obj(primary_key, names, data)
+        return self._make_obj(primary_key, names_desc, data)
 
     def get_all(self, where: dict[str, Any] | None = None) -> list[T]:
         names = ", ".join(self._fields)
@@ -142,9 +142,9 @@ class SqliteRepository(AbstractRepository[T]):
         ) as cursor:
             self._set_pragmas(cursor)
             data_lst = cursor.execute(query, params).fetchall()
-            names = cursor.description
+            names_desc = cursor.description
 
-        return [self._make_obj(data[0], names[1:], data[1:]) for data in data_lst]
+        return [self._make_obj(data[0], names_desc[1:], data[1:]) for data in data_lst]
 
     def update(self, obj: T) -> None:
         names = ", ".join(self._fields)
