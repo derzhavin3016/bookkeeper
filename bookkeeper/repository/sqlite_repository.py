@@ -10,7 +10,11 @@ import sqlite3
 # from datetime import datetime
 from contextlib import closing
 
-from bookkeeper.repository.abstract_repository import AbstractRepository, T, PK_FIELD_NAME
+from bookkeeper.repository.abstract_repository import (
+    AbstractRepository,
+    T,
+    PK_FIELD_NAME,
+)
 
 
 class SqliteRepository(AbstractRepository[T]):
@@ -78,12 +82,13 @@ class SqliteRepository(AbstractRepository[T]):
         with closing(sqlite3.connect(self._db_name)) as con, con as con, closing(
             con.cursor()
         ) as cursor:
-            cursor.execute("PRAGMA foreign_keys = ON")
+            self._set_pragmas(cursor)
             cursor.execute(
                 f"INSERT INTO {self._table_name} ({names}) VALUES ({placeholders})",
                 values,
             )
 
+            assert cursor.lastrowid is not None
             obj.primary_key = cursor.lastrowid
 
         return obj.primary_key
@@ -124,20 +129,52 @@ class SqliteRepository(AbstractRepository[T]):
         query = f"SELECT {PK_FIELD_NAME}, {names} FROM {self._table_name}"
         params: list[Any] = []
         if where is not None:
-            query += "WHERE "
-            query += f"WHERE {' AND '.join(map(lambda name: f'{name}=?', where))}"
+            query += f" WHERE {' AND '.join(map(lambda name: f'{name} = ?', where))}"
             params.extend(where[name] for name in where)
 
         with closing(sqlite3.connect(self._db_name)) as con, con as con, closing(
             con.cursor()
         ) as cursor:
+            self._set_pragmas(cursor)
             data_lst = cursor.execute(query, params).fetchall()
             names = cursor.description
 
-        return [self._make_obj(data[0], names[0:], data[0:]) for data in data_lst]
+        return [self._make_obj(data[0], names[1:], data[1:]) for data in data_lst]
 
     def update(self, obj: T) -> None:
-        pass
+        names = ", ".join(self._fields)
+        placeholders = ", ".join("?" * len(self._fields))
+
+        primary_key = getattr(obj, PK_FIELD_NAME)
+        with closing(sqlite3.connect(self._db_name)) as con, con as con, closing(
+            con.cursor()
+        ) as cursor:
+            self._set_pragmas(cursor)
+            cursor.execute(
+                f"UPDATE {self._table_name} "
+                f"SET ({names}) = ({placeholders}) "
+                f"WHERE {PK_FIELD_NAME}={primary_key}",
+                [getattr(obj, name) for name in self._fields],
+            )
+
+            if con.total_changes == 0:
+                raise ValueError(
+                    f"Trying to update object with key {primary_key}, "
+                    "which does not exist"
+                )
 
     def delete(self, primary_key: int) -> None:
-        pass
+        with closing(sqlite3.connect(self._db_name)) as con, con as con, closing(
+            con.cursor()
+        ) as cursor:
+            self._set_pragmas(cursor)
+
+            cursor.execute(
+                f"DELETE FROM {self._table_name} WHERE {PK_FIELD_NAME}={primary_key}"
+            )
+
+            if con.total_changes == 0:
+                raise KeyError(
+                    f"Trying to delete object with key {primary_key}, "
+                    "which does not exist"
+                )
