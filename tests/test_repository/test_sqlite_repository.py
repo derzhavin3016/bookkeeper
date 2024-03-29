@@ -1,5 +1,6 @@
 import pytest
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from datetime import datetime
 
 from bookkeeper.repository.sqlite_repository import SqliteRepository
 
@@ -10,6 +11,7 @@ class Custom:
     data: int = 0
     data_str: str = ""
     data_float: float = 0.0
+    data_date: datetime = field(default_factory=datetime.now)
 
 
 @pytest.fixture

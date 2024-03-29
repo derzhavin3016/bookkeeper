@@ -6,6 +6,7 @@ from typing import Any, cast
 from inspect import get_annotations
 from pathlib import Path
 import sqlite3
+from datetime import datetime
 
 # from datetime import datetime
 from contextlib import closing
@@ -41,8 +42,10 @@ class SqliteRepository(AbstractRepository[T]):
         str: "TEXT",
         int: "INTEGER",
         float: "REAL",
-        # datetime: "DATETIME",
+        datetime: "DATETIME",
     }
+
+    _datetime_fmt = "%d/%m/%y %H:%M:%S.%f"
 
     @staticmethod
     def _map_to_sql(tpy: type) -> str:
@@ -50,6 +53,19 @@ class SqliteRepository(AbstractRepository[T]):
         if res is None:
             raise ValueError(f"Type {tpy} is not supported yet")
         return res
+
+    @staticmethod
+    def _make_val_from_sql(tpy: type, val: Any) -> Any:
+        if tpy is datetime:
+            return datetime.strptime(val, SqliteRepository._datetime_fmt)
+        return val
+
+    @staticmethod
+    def _val_to_sql(val: Any) -> Any:
+        if isinstance(val, datetime):
+            return val.strftime(SqliteRepository._datetime_fmt)
+
+        return val
 
     def _init_database(self) -> None:
         with closing(sqlite3.connect(self._db_name)) as con, con as con, closing(
@@ -66,6 +82,9 @@ class SqliteRepository(AbstractRepository[T]):
                 + ")"
             )
 
+    def _decompose(self, obj: T) -> list[Any]:
+        return [self._val_to_sql(getattr(obj, key)) for key in self._fields]
+
     def add(self, obj: T) -> int:
         if (prim_key := getattr(obj, PK_FIELD_NAME, None)) is None:
             raise ValueError(
@@ -79,7 +98,7 @@ class SqliteRepository(AbstractRepository[T]):
         names = ", ".join(self._fields)
         placeholders = ", ".join("?" * len(self._fields))
 
-        values = [getattr(obj, key) for key in self._fields]
+        values = self._decompose(obj)
 
         with closing(sqlite3.connect(self._db_name)) as con, con as con, closing(
             con.cursor()
@@ -105,9 +124,12 @@ class SqliteRepository(AbstractRepository[T]):
             if col_desc[0] not in self._fields:
                 raise ValueError(f"Unexpected field name: {col_desc[0]}")
             exp_type = self._fields[col_desc[0]]
-            if not isinstance(val, exp_type):
-                raise TypeError(f"Incompatible types: got {val}, expected {exp_type}")
-            setattr(obj, col_desc[0], val)
+            mapped_val = self._make_val_from_sql(exp_type, val)
+            if not isinstance(mapped_val, exp_type):
+                raise TypeError(
+                    f"Incompatible types: got {type(mapped_val)}, expected {exp_type}"
+                )
+            setattr(obj, col_desc[0], mapped_val)
 
         return cast(T, obj)
 
@@ -159,7 +181,7 @@ class SqliteRepository(AbstractRepository[T]):
                 f"UPDATE {self._table_name} "
                 f"SET ({names}) = ({placeholders}) "
                 f"WHERE {PK_FIELD_NAME}={primary_key}",
-                [getattr(obj, name) for name in self._fields],
+                self._decompose(obj),
             )
 
             if con.total_changes == 0:
